@@ -11,6 +11,11 @@ Aplicación de escritorio nativa de barra de menús para macOS, pensada para cre
 
 RemindUP vive como un ícono discreto en la barra de menús (junto al WiFi, batería, etc.) y abre un formulario flotante para crear un recordatorio en segundos.
 
+<img width="517" height="28" alt="Captura de pantalla 2026-07-03 a la(s) 1 26 44 a m" src="https://github.com/user-attachments/assets/e03cdee9-1ac8-41e4-a006-eb37e1645ae3" />
+
+<img width="514" height="614" alt="Captura de pantalla 2026-07-03 a la(s) 1 27 14 a m" src="https://github.com/user-attachments/assets/7a3d5c0a-6e17-4d36-bead-c3b648214da1" />
+
+
 ## Características
 
 - **Ícono persistente en la barra de menús** (`Tray`), sin ocupar espacio en el Dock ni en Cmd+Tab.
