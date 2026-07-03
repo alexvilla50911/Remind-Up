@@ -1,0 +1,20 @@
+{
+  "name": "remindup",
+  "productName": "RemindUP",
+  "version": "1.0.0",
+  "description": "Aplicación de escritorio para macOS para crear y gestionar recordatorios con notificaciones nativas",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package:mac": "electron-packager . RemindUP --platform=darwin --arch=arm64 --overwrite --out=dist --prune=true"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@electron/packager": "^20.0.1",
+    "electron": "^31.7.7"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  }
+}
