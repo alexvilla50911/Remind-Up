@@ -14,11 +14,13 @@ RemindUP vive como un ícono discreto en la barra de menús (junto al WiFi, bate
 ## Características
 
 - **Ícono persistente en la barra de menús** (`Tray`), sin ocupar espacio en el Dock ni en Cmd+Tab.
-- **Formulario flotante** para crear recordatorios: texto libre + fecha/hora de notificación.
-- **Notificaciones nativas de macOS** cuando se cumple la fecha programada.
+- **Formulario flotante** para crear recordatorios: texto libre + fecha/hora del evento.
+- **Presets de anticipación** ("A la hora exacta", "5 minutos antes", "10 minutos antes", "15 minutos antes", "30 minutos antes", "1 hora antes") — la app calcula sola la hora real de aviso restando ese margen a la fecha del evento.
+- **Fecha de hoy preseleccionada** al abrir el formulario, para no tener que escribirla cada vez.
+- **Notificaciones nativas de macOS** cuando se cumple la hora calculada.
+- **Integración con Telegram**: además de la notificación nativa, el mismo recordatorio se manda como mensaje de un bot propio de Telegram (`Recordatorio: {texto}`), para que llegue también al celular.
 - **Persistencia local** en disco (JSON), sin backend ni base de datos externa.
 - **Auto-inicio con el sistema** una vez empaquetada como `.app`.
-- **Punto de extensión para webhooks** (Telegram/Discord) ya preparado en el proceso principal, para reenviar la alerta al celular más adelante.
 
 ## Stack técnico
 
@@ -29,6 +31,7 @@ RemindUP vive como un ícono discreto en la barra de menús (junto al WiFi, bate
 | Interfaz (renderer) | HTML, CSS y JavaScript vanilla (sin frameworks) |
 | Comunicación IPC | `contextBridge` + `ipcMain`/`ipcRenderer`, con `contextIsolation` activado |
 | Persistencia | [`electron-store`](https://github.com/sindresorhus/electron-store) (JSON en disco) |
+| Notificaciones al celular | [Telegram Bot API](https://core.telegram.org/bots/api) vía `fetch` nativo |
 | Empaquetado | [`@electron/packager`](https://github.com/electron/packager) |
 
 ### Dependencias
@@ -68,6 +71,24 @@ npm install
 npm start
 ```
 
+## Configurar Telegram
+
+Los recordatorios se pueden reenviar a un bot propio de Telegram. Requiere dos datos:
+
+1. **Token del bot**: se crea hablando con [@BotFather](https://t.me/BotFather) en Telegram (`/newbot`).
+2. **Chat ID**: se obtiene mandándole un mensaje a tu bot y luego visitando `https://api.telegram.org/bot<TOKEN>/getUpdates`, buscando el campo `"chat":{"id": ...}`.
+
+Ambos valores se guardan **fuera del repositorio**, en el archivo de datos de la app (`~/Library/Application Support/RemindUP/config.json`), para que el token nunca se suba a git ni a GitHub:
+
+```json
+{
+  "telegramToken": "TU_TOKEN_AQUI",
+  "telegramChatId": "TU_CHAT_ID_AQUI"
+}
+```
+
+Si ese archivo no existe o está vacío, la app simplemente omite el envío a Telegram y solo muestra la notificación nativa de macOS.
+
 ## Empaquetar como aplicación de macOS
 
 Genera un `.app` standalone en `dist/`, sin depender de Node ni de terminal para usarse día a día:
@@ -80,7 +101,8 @@ Luego mueve `dist/RemindUP-darwin-arm64/RemindUP.app` a `/Applications` y ábrel
 
 ## Roadmap
 
-- [ ] Integrar webhook de Telegram/Discord para notificaciones al celular.
+- [x] Integrar webhook de Telegram para notificaciones al celular.
+- [ ] Webhook alternativo a Discord.
 - [ ] Listado y edición de recordatorios existentes.
 - [ ] Recordatorios recurrentes.
 

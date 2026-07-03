@@ -71,7 +71,8 @@ label {
 }
 
 textarea,
-input[type='datetime-local'] {
+input[type='datetime-local'],
+select {
   width: 100%;
   background: var(--field-bg);
   border: 1px solid var(--field-border);
@@ -82,6 +83,20 @@ input[type='datetime-local'] {
   font-family: inherit;
   outline: none;
   transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+    linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+select option {
+  background: #26214a;
+  color: var(--text);
 }
 
 textarea {
@@ -95,7 +110,8 @@ textarea::placeholder {
 }
 
 textarea:focus,
-input[type='datetime-local']:focus {
+input[type='datetime-local']:focus,
+select:focus {
   border-color: var(--accent-light);
   background: var(--field-bg-focus);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);

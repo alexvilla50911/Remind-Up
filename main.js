@@ -7,16 +7,34 @@ const store = new Store({
   defaults: { reminders: [] }
 });
 
+const config = new Store({
+  name: 'config',
+  defaults: { telegramToken: '', telegramChatId: '' }
+});
+
 let mainWindow = null;
 let tray = null;
 
 const scheduledTimers = new Map();
 
 async function sendWebhookAlert(reminder) {
- //metodo post para enviar mensajes 
- //a telegrtam o discord el reminder al cel
- //es un feature a futuro, ahorita nel
-  return Promise.resolve();
+  const token = config.get('telegramToken');
+  const chatId = config.get('telegramChatId');
+
+  if (!token || !chatId) return;
+
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: `Recordatorio: ${reminder.text}`
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Telegram respondió ${response.status}`);
+  }
 }
 
 function createWindow() {
@@ -148,7 +166,8 @@ function buildMenu() {
 
 //notis
 function scheduleReminder(reminder) {
-  const delay = new Date(reminder.datetime).getTime() - Date.now();
+  const notifyAt = reminder.notifyAt || reminder.datetime;
+  const delay = new Date(notifyAt).getTime() - Date.now();
 
   if (delay <= 0) return;
 
@@ -199,10 +218,17 @@ ipcMain.handle('reminders:getAll', () => {
 });
 
 ipcMain.handle('reminders:save', (_event, reminderInput) => {
+  const offsetMinutes = Number(reminderInput.offsetMinutes) || 0;
+  const notifyAt = new Date(
+    new Date(reminderInput.datetime).getTime() - offsetMinutes * 60000
+  ).toISOString();
+
   const reminder = {
     id: Date.now().toString(),
     text: reminderInput.text,
     datetime: reminderInput.datetime,
+    offsetMinutes,
+    notifyAt,
     notified: false,
     createdAt: new Date().toISOString()
   };
