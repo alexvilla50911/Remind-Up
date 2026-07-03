@@ -10,12 +10,12 @@ const store = new Store({
 let mainWindow = null;
 let tray = null;
 
-
 const scheduledTimers = new Map();
 
-
 async function sendWebhookAlert(reminder) {
- //metodos para enviar x telegrtam o discord el reminder al cel
+ //metodo post para enviar mensajes 
+ //a telegrtam o discord el reminder al cel
+ //es un feature a futuro, ahorita nel
   return Promise.resolve();
 }
 
@@ -27,10 +27,11 @@ function createWindow() {
   }
 
   mainWindow = new BrowserWindow({
-    width: 480,
+    width: 440,
     height: 560,
     resizable: false,
     title: 'RemindUP',
+    backgroundColor: '#15132b',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -55,7 +56,6 @@ function openNewReminderWindow() {
 }
 
 function createTray() {
- 
   const icon = nativeImage.createEmpty();
   tray = new Tray(icon);
   tray.setTitle('RemindUP');
@@ -71,8 +71,6 @@ function createTray() {
     { label: 'Salir', role: 'quit' }
   ]);
 
-  // Clic izquierdo: abre directamente el formulario.
-  // Clic derecho: muestra el menú contextual (nuevo recordatorio / salir).
   tray.on('click', () => openNewReminderWindow());
   tray.on('right-click', () => tray.popUpContextMenu(contextMenu));
 }
@@ -152,11 +150,8 @@ function buildMenu() {
 function scheduleReminder(reminder) {
   const delay = new Date(reminder.datetime).getTime() - Date.now();
 
-  // Si ya pasó la fecha, no se programa.
   if (delay <= 0) return;
 
-  // setTimeout tiene un límite máximo (~24.8 días). Para recordatorios más
-  // lejanos se reprograma en tramos hasta llegar a la fecha final.
   const MAX_DELAY = 2147483647;
 
   const fire = () => {
@@ -169,8 +164,6 @@ function scheduleReminder(reminder) {
     });
     notification.show();
 
-    // Punto de extensión: además de la notificación nativa, reenviar la
-    // alerta a un webhook externo (Telegram, Discord, etc.)
     sendWebhookAlert(reminder).catch((err) => {
       console.error('Error enviando webhook de recordatorio:', err);
     });
@@ -201,9 +194,6 @@ function markReminderAsNotified(id) {
   store.set('reminders', updated);
 }
 
-// ---------------------------------------------------------------------------
-// IPC: comunicación con el formulario (renderer)
-// ---------------------------------------------------------------------------
 ipcMain.handle('reminders:getAll', () => {
   return store.get('reminders', []);
 });
@@ -227,15 +217,10 @@ ipcMain.handle('reminders:save', (_event, reminderInput) => {
 });
 
 app.whenReady().then(() => {
-  // Se comporta como utilidad de barra de menús: sin ícono en el Dock ni
-  // entrada en Cmd+Tab, solo el ícono del tray.
   if (process.platform === 'darwin') {
     app.dock.hide();
   }
 
-  // Solo tiene sentido registrar el auto-inicio cuando corre como app
-  // empaquetada (.app); en modo desarrollo apuntaría al binario de Electron
-  // dentro de node_modules.
   if (app.isPackaged) {
     app.setLoginItemSettings({ openAtLogin: true });
   }
@@ -249,8 +234,6 @@ app.whenReady().then(() => {
   });
 });
 
-// La app se queda "viva" en la barra de menús (macOS) aunque se cierre la
-// ventana del formulario, para que el ícono del tray siga disponible.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });

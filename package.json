@@ -8,7 +8,7 @@
     "start": "electron .",
     "package:mac": "electron-packager . RemindUP --platform=darwin --arch=arm64 --overwrite --out=dist --prune=true"
   },
-  "author": "",
+  "author": "Alejandro Villarreal Carvajal",
   "license": "ISC",
   "devDependencies": {
     "@electron/packager": "^20.0.1",

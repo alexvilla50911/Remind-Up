@@ -2,12 +2,15 @@ const form = document.getElementById('reminder-form');
 const textInput = document.getElementById('text');
 const datetimeInput = document.getElementById('datetime');
 const saveBtn = document.getElementById('save-btn');
+const cancelBtn = document.getElementById('cancel-btn');
 const status = document.getElementById('status');
 
-// Cuando el menú "Recordatorios > Nuevo recordatorio" o el atajo Cmd+N
-// disparan la ventana, se enfoca directamente el campo de texto.
 window.remindupAPI.onFocusNewReminder(() => {
   textInput.focus();
+});
+
+cancelBtn.addEventListener('click', () => {
+  window.close();
 });
 
 form.addEventListener('submit', async (event) => {
@@ -19,15 +22,16 @@ form.addEventListener('submit', async (event) => {
   if (!text || !datetime) return;
 
   saveBtn.disabled = true;
+  status.classList.remove('error');
   status.textContent = '';
 
   try {
     await window.remindupAPI.saveReminder({ text, datetime });
 
-    status.textContent = 'Recordatorio guardado ✓';
+    status.textContent = 'Recordatorio guardado';
     form.reset();
   } catch (err) {
-    status.style.color = '#e74c3c';
+    status.classList.add('error');
     status.textContent = 'Ocurrió un error al guardar el recordatorio';
     console.error(err);
   } finally {
