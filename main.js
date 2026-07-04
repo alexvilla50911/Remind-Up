@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, nativeImage, ipcMain, Notification, shell } = require('electron');
+const { app, BrowserWindow, Menu, Tray, nativeImage, ipcMain, Notification, shell, powerMonitor } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
@@ -165,35 +165,41 @@ function buildMenu() {
 }
 
 //notis
+function fireReminder(reminder) {
+  scheduledTimers.delete(reminder.id);
+
+  const notification = new Notification({
+    title: 'Recordatorio',
+    body: reminder.text,
+    sound: 'default'
+  });
+  notification.show();
+
+  sendWebhookAlert(reminder).catch((err) => {
+    console.error('Error enviando webhook de recordatorio:', err);
+  });
+
+  markReminderAsNotified(reminder.id);
+}
+
 function scheduleReminder(reminder) {
+  const existingTimer = scheduledTimers.get(reminder.id);
+  if (existingTimer) clearTimeout(existingTimer);
+
   const notifyAt = reminder.notifyAt || reminder.datetime;
   const delay = new Date(notifyAt).getTime() - Date.now();
 
-  if (delay <= 0) return;
+  if (delay <= 0) {
+    fireReminder(reminder);
+    return;
+  }
 
   const MAX_DELAY = 2147483647;
-
-  const fire = () => {
-    scheduledTimers.delete(reminder.id);
-
-    const notification = new Notification({
-      title: 'Recordatorio',
-      body: reminder.text,
-      sound: 'default'
-    });
-    notification.show();
-
-    sendWebhookAlert(reminder).catch((err) => {
-      console.error('Error enviando webhook de recordatorio:', err);
-    });
-
-    markReminderAsNotified(reminder.id);
-  };
 
   const timerId =
     delay > MAX_DELAY
       ? setTimeout(() => scheduleReminder(reminder), MAX_DELAY)
-      : setTimeout(fire, delay);
+      : setTimeout(() => fireReminder(reminder), delay);
 
   scheduledTimers.set(reminder.id, timerId);
 }
@@ -254,6 +260,9 @@ app.whenReady().then(() => {
   buildMenu();
   createTray();
   scheduleAllPendingReminders();
+
+  powerMonitor.on('resume', scheduleAllPendingReminders);
+  powerMonitor.on('unlock-screen', scheduleAllPendingReminders);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
