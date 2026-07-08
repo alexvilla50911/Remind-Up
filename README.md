@@ -107,14 +107,12 @@ Luego mueve `dist/RemindUP-darwin-arm64/RemindUP.app` a `/Applications` y ábrel
 ## Roadmap
 
 - [x] Integrar webhook de Telegram para notificaciones al celular.
-- [ ] Webhook alternativo a Discord.
-- [ ] Listado y edición de recordatorios existentes.
-- [ ] Recordatorios recurrentes.
-- [ ] Almacenar Reminders en SupaBase para evitar que todo sea local.
+- [X] Almacenar Reminders en SupaBase para evitar que todo sea local.
+- [X] Nuevos features que tendré que pensar dependiendo mis necesidades.
 
 ## Autor
 
-Hecho por **Alejandro Villarreal Carvajal**.
+Hecho por **Ing.Alejandro Villarreal Carvajal**.
 
 ## Licencia
 
