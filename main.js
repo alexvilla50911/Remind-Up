@@ -7,33 +7,33 @@ const store = new Store({
   defaults: { reminders: [] }
 });
 
-const config = new Store({
-  name: 'config',
-  defaults: { telegramToken: '', telegramChatId: '' }
-});
-
 let mainWindow = null;
 let tray = null;
 
 const scheduledTimers = new Map();
 
-async function sendWebhookAlert(reminder) {
-  const token = config.get('telegramToken');
-  const chatId = config.get('telegramChatId');
+// el aviso de Telegram ya no se manda desde aquí, lo hace un cron en Supabase
+// para que llegue aunque la Mac esté apagada o dormida. esto solo sube el
+// recordatorio a la nube para que ese cron lo vea.
+const SUPABASE_URL = 'https://frvluocqqmkoqydscpdn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZydmx1b2NxcW1rb3F5ZHNjcGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0ODUyNzEsImV4cCI6MjA5OTA2MTI3MX0.qY6EEixGJlj8fk2GhKp0eOhvhuRT9QKJzjeTqNqq0yY';
 
-  if (!token || !chatId) return;
-
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+async function syncReminderToSupabase(reminder) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/reminders`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    },
     body: JSON.stringify({
-      chat_id: chatId,
-      text: `Recordatorio: ${reminder.text}`
+      text: reminder.text,
+      notify_at: reminder.notifyAt
     })
   });
 
   if (!response.ok) {
-    throw new Error(`Telegram respondió ${response.status}`);
+    throw new Error(`Supabase respondió ${response.status}`);
   }
 }
 
@@ -175,10 +175,6 @@ function fireReminder(reminder) {
   });
   notification.show();
 
-  sendWebhookAlert(reminder).catch((err) => {
-    console.error('Error enviando webhook de recordatorio:', err);
-  });
-
   markReminderAsNotified(reminder.id);
 }
 
@@ -244,6 +240,10 @@ ipcMain.handle('reminders:save', (_event, reminderInput) => {
   store.set('reminders', reminders);
 
   scheduleReminder(reminder);
+
+  syncReminderToSupabase(reminder).catch((err) => {
+    console.error('Error subiendo recordatorio a Supabase:', err);
+  });
 
   return reminder;
 });
